@@ -74,6 +74,8 @@ export class CustomFunction extends Construct {
             POWERTOOLS_TRACER_CAPTURE_RESPONSE: (logLevel === 'DEBUG') ? 'true' : 'false',
         };
 
+        const toolsLayer = props.toolsLayer || new ToolsLayer(this, 'ToolsLayer', { svcName }).layerVersion;
+
         const fnc = new NodejsFunction(this, 'Fnc', {
             description,
             runtime: Runtime.NODEJS_16_X,
@@ -82,7 +84,7 @@ export class CustomFunction extends Construct {
             tracing: Tracing.ACTIVE,
             logRetention,
             layers: [
-                new ToolsLayer(this, 'ToolsLayer', { svcName }).layerVersion,
+                toolsLayer,
                 ...layers,
             ],
             bundling: {

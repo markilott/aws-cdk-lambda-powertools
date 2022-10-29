@@ -72,9 +72,12 @@ export type CustomFunctionProps = {
     entry: string,
 
     /**
-     * Add layers.
-     * The PowerTools layer is added by default.
+     * Layer containing PowerTools modules.
+     * If not included a layer will be created.
      */
+    toolsLayer?: LayerVersion,
+
+    /** Add other layers if required */
     layers?: LayerVersion[],
 
     /**

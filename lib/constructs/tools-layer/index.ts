@@ -6,7 +6,8 @@ type ToolsLayerProps = {
 };
 
 /**
- * Create a Lambda layer with the PowerTools npm modules.
+ * Create a Lambda layer with the PowerTools and other
+ * required modules.
  */
 export class ToolsLayer extends Construct {
     /** Lambda Layer */

@@ -1,7 +1,9 @@
 import { Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { RestApi, LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
-import { CustomFunction, CustomDynamoTable, CustomApi } from '@demo/constructs';
+import {
+    CustomFunction, CustomDynamoTable, CustomApi, ToolsLayer,
+} from '@demo/constructs';
 import { DemoStackProps } from 'types';
 import { AttributeType, ProjectionType } from 'aws-cdk-lib/aws-dynamodb';
 
@@ -50,6 +52,16 @@ export class ApplicationStack extends Stack {
         });
 
         // Lambda Function Common Props ===========================
+
+        // Tools Layer
+        /**
+         * Lambda Layer including the PowerTools modules.
+         * We could install PowerTools modules from the AWS shared layer:
+         * new LayerVersion.fromLayerVersionArn(this, 'ToolsLayer', `arn:aws:lambda:${this.region}:094274105915:layer:AWSLambdaPowertoolsTypeScript:4`);
+         * However we are creating our own here to include middy and moment.
+         */
+        const toolsLayer = new ToolsLayer(this, 'ToolsLayer', { svcName }).layerVersion;
+
         const lambdaDefaultProps = {
             svcName,
             powerToolsOptions: {
@@ -59,6 +71,7 @@ export class ApplicationStack extends Stack {
             environment: {
                 TABLE_NAME: tableName,
             },
+            toolsLayer,
         };
         this.functions = [];
 
