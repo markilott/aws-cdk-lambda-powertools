@@ -1,0 +1,40 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "commonjs",
+        "lib": [
+            "es2020"
+        ],
+        "declaration": true,
+        "strict": false,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "noImplicitThis": true,
+        "alwaysStrict": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": false,
+        "inlineSourceMap": false,
+        "inlineSources": false,
+        "experimentalDecorators": true,
+        "strictPropertyInitialization": false,
+        "typeRoots": [
+            "./node_modules/@types",
+            "./types"
+        ],
+        "baseUrl": ".",
+        "paths": {
+            // Mapping is relative to "baseUrl"
+            "@demo/*": [
+                "./lib/constructs/*"
+            ]
+        }
+    },
+    "exclude": [
+        "node_modules",
+        "cdk.out",
+        "**.js",
+        ".eslintrc.js",
+    ],
+}
