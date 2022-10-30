@@ -11,7 +11,8 @@ It demonstrates:
 All of the resources are created using CDK and can be simply deployed to a test account.
 
 More detail is covered in the Medium articles here:
-- [Custom Constructs](https://medium.com/p/758f99ae94a6)
+- [Custom Constructs](https://markilott.medium.com/simple-custom-constructs-in-aws-cdk-758f99ae94a6)
+- [PowerTools Logging and CloudWatch](https://markilott.medium.com/aws-lambda-powertools-b74baa36ac61)
 
 &nbsp;
 

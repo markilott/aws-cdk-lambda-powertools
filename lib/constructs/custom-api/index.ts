@@ -18,7 +18,7 @@ type CustomApiProps = {
 };
 
 /**
- * Creates a DynamoDB table with standard settings.
+ * Creates an API Gateway instance with standard settings.
  */
 export class CustomApi extends Construct {
     /** API construct */

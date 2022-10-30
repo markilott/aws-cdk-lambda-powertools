@@ -9,7 +9,7 @@ import { CustomFunction, CustomDynamoTable, CustomApi } from '@demo/constructs';
 import { CfnGroup } from 'aws-cdk-lib/aws-xray';
 
 interface DashboardStackProps extends DemoStackProps {
-    /** Output the API for use in the workflow stack */
+    /** Demo API inc Dashboard widgets */
     demoApi: CustomApi;
 
     /** Custom Functions */
@@ -38,6 +38,11 @@ export class DashboardStack extends Stack {
 
         // CloudWatch Log Insights =============================================
         // These appear as saved queries in Log Insights
+
+        // All of the function log groups
+        const logGroups = functions.map((fnc) => fnc.logGroup);
+
+        // WARN query
         new QueryDefinition(this, 'WarnLevel', {
             queryDefinitionName: `${svcName}_WarnLevel`,
             queryString: new QueryString({
@@ -46,8 +51,10 @@ export class DashboardStack extends Stack {
                 limit: 20,
                 filter: 'level = "WARN"',
             }),
-            logGroups: functions.map((fnc) => fnc.logGroup),
+            logGroups,
         });
+
+        // ERROR query
         new QueryDefinition(this, 'ErrorLevel', {
             queryDefinitionName: `${svcName}_ErrorLevel`,
             queryString: new QueryString({
@@ -56,8 +63,10 @@ export class DashboardStack extends Stack {
                 limit: 20,
                 filter: 'level = "ERROR"',
             }),
-            logGroups: functions.map((fnc) => fnc.logGroup),
+            logGroups,
         });
+
+        // WARN query with correlationId filter
         new QueryDefinition(this, 'WarnLevelCorrelationId', {
             queryDefinitionName: `${svcName}_WarnLevel_CorrelationId`,
             queryString: new QueryString({
@@ -66,8 +75,10 @@ export class DashboardStack extends Stack {
                 limit: 20,
                 filter: 'level = "WARN" and correlationId = "enter_id"',
             }),
-            logGroups: functions.map((fnc) => fnc.logGroup),
+            logGroups,
         });
+
+        // ERROR query with correlationId filter
         new QueryDefinition(this, 'ErrorLevelCorrelationId', {
             queryDefinitionName: `${svcName}_ErrorLevel_CorrelationId`,
             queryString: new QueryString({
@@ -76,7 +87,7 @@ export class DashboardStack extends Stack {
                 limit: 20,
                 filter: 'level = "ERROR" and correlationId = "enter_id"',
             }),
-            logGroups: functions.map((fnc) => fnc.logGroup),
+            logGroups,
         });
 
         // X-Ray Group ===========================================================

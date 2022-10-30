@@ -13,7 +13,7 @@ import { CustomFunctionProps, PowerToolsEnvProps } from './types';
 /**
  * External npm modules that are included in the tools-layer.
  * These module are excluded in the bundle process.
- * This list needs to be update if modules are added/removed from the tools-layer.
+ * This list needs to be updated if modules are added/removed from the tools-layer.
  */
 const toolsModuleList = [
     '@aws-lambda-powertools/commons',
@@ -102,7 +102,9 @@ export class CustomFunction extends Construct {
         this.function = fnc;
         this.logGroup = fnc.logGroup;
 
-        // Metrics
+        /**
+         * Standard Metrics for the Lambda Function
+         */
         const invocationMetric = fnc.metricInvocations({
             label: `${label} Invocations`,
             dimensionsMap: {
@@ -180,7 +182,9 @@ export class CustomFunction extends Construct {
             color: Color.RED,
         });
 
-        // Dashboard Widgets
+        /**
+         * Standard Widgets for adding to a CloudWatch Dashboard
+         */
         const headerWidget = new TextWidget({
             markdown: `## ${label} Metrics`,
             width: 24,
@@ -248,7 +252,9 @@ export class CustomFunction extends Construct {
             height: 6,
         });
 
-        // Export all widgets for dashboard
+        /**
+         * Export all the widgets for use in a Dashboard Row
+         */
         this.dashboardWidgets = [
             headerWidget,
             invocationStats,

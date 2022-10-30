@@ -9,10 +9,12 @@ import { ItemAttributes } from 'types';
 const tableName = process.env.TABLE_NAME;
 const logExpiry = Number(process.env.LOG_EXPIRY_IN_DAYS) || 30;
 
+/** Instantiate the PowerTools instances */
 const logger = new Logger();
 const tracer = new Tracer();
 const metrics = new Metrics();
 
+/** Wrap the AWS client in the tracer */
 const docClient = tracer.captureAWSClient(new DynamoDB.DocumentClient({
     region: process.env.AWS_REGION,
 }));
@@ -56,6 +58,11 @@ const lambdaHandler = async (event: EventProps): Promise<FunctionResult> => {
     let statusCode = 500;
     let errorMessage = 'Internal Handler Error';
 
+    /**
+     * Add a correlationId (tracking code).
+     * correlationId will be included with all logs, metrics and traces
+     * and will be searchable/filterable in the CloudWatch console.
+     */
     tracer.putAnnotation('correlationId', correlationId);
     logger.appendKeys({ correlationId });
     metrics.addMetadata('correlationId', correlationId);
@@ -99,8 +106,10 @@ const lambdaHandler = async (event: EventProps): Promise<FunctionResult> => {
         }
         logger.info('Colour', { data: colour });
 
-        // Write colour to a specific metric
-        // This metric will have the "feature" dimension in addition to defaults
+        /**
+         * Write the item colour to a custom metric.
+         * This metric will have the "feature" dimension in addition to defaults.
+         */
         const colourMetric = metrics.singleMetric();
         colourMetric.addDimension('feature', 'colourPicker');
         colourMetric.addMetric(colour, MetricUnits.Count, 1);
@@ -147,11 +156,16 @@ const lambdaHandler = async (event: EventProps): Promise<FunctionResult> => {
         };
     } catch (err) {
         if (!(err instanceof Error)) { throw err; }
+
+        /** Adding the function_name dimension to match the default used in the PowerTools cold start metric */
         metrics.addDimension('function_name', process.env.AWS_LAMBDA_FUNCTION_NAME || 'unknown');
+
         if (statusCode === 400) {
+            /** Add WARN level log and metric count for client errors */
             logger.warn(errorMessage, { data: params });
             metrics.addMetric('WARNING', MetricUnits.Count, 1);
         } else {
+            /** Add ERROR level log and metric count for internal errors */
             logger.error(err.message, err);
             metrics.addMetric('ERROR', MetricUnits.Count, 1);
         }
@@ -165,8 +179,9 @@ const lambdaHandler = async (event: EventProps): Promise<FunctionResult> => {
     }
 };
 
-// PowerTools handler
+/** Wrap the handler with middy and inject PowerTools */
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
+    /** clearState resets the correlationId for each invocation */
     .use(injectLambdaContext(logger, { clearState: true }))
     .use(logMetrics(metrics, { captureColdStartMetric: true }));
