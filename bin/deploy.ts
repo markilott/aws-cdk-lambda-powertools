@@ -24,7 +24,7 @@ const apiStack = new ApplicationStack(app, 'ToolsDemoStack', {
 });
 
 // Create Test Workflow stack
-new StepFunctionStack(app, 'ToolsWorkflowStack', {
+const workflowStack = new StepFunctionStack(app, 'ToolsWorkflowStack', {
     description: 'Lambda PowerTools StepFunction Test Stack',
     env: { account, region },
     api: apiStack.api,
@@ -38,5 +38,6 @@ new DashboardStack(app, 'ToolsDashboardStack', {
     demoApi: apiStack.customApi,
     functions: apiStack.functions,
     colourTable: apiStack.colourTable,
+    dataStepFunctionWidgets: workflowStack.dashboardWidgets,
     ...options,
 });

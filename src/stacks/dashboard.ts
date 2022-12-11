@@ -2,7 +2,7 @@ import { Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { QueryDefinition, QueryString } from 'aws-cdk-lib/aws-logs';
 import {
-    Color, Dashboard, GraphWidget, GraphWidgetView, LegendPosition, Metric, Row, TextWidget,
+    Color, Dashboard, GraphWidget, GraphWidgetView, LegendPosition, Metric, Row, SingleValueWidget, TextWidget,
 } from 'aws-cdk-lib/aws-cloudwatch';
 import { DemoStackProps } from 'types';
 import { CustomFunction, CustomDynamoTable, CustomApi } from '@demo/constructs';
@@ -17,6 +17,9 @@ interface DashboardStackProps extends DemoStackProps {
 
     /** Custom Table */
     colourTable: CustomDynamoTable;
+
+    /** Demo Data StepFunction */
+    dataStepFunctionWidgets: (TextWidget | SingleValueWidget)[];
 }
 
 /**
@@ -33,7 +36,7 @@ export class DashboardStack extends Stack {
 
         const {
             svcName = 'ToolsDemo',
-            functions, colourTable, demoApi,
+            functions, colourTable, demoApi, dataStepFunctionWidgets,
         } = props;
 
         // CloudWatch Log Insights =============================================
@@ -180,5 +183,8 @@ export class DashboardStack extends Stack {
         rows.forEach((row) => {
             dashboard.addWidgets(row);
         });
+
+        // Demo data StepFunction stats
+        dashboard.addWidgets(new Row(...dataStepFunctionWidgets));
     }
 }
