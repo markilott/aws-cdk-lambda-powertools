@@ -10,10 +10,10 @@
     "author": "Mark Ilott",
     "license": "MIT",
     "devDependencies": {
-        "@aws-lambda-powertools/commons": "^1.2.1",
-        "@aws-lambda-powertools/logger": "^1.2.1",
-        "@aws-lambda-powertools/metrics": "^1.2.1",
-        "@aws-lambda-powertools/tracer": "^1.2.1",
+        "@aws-lambda-powertools/commons": "^1.5.0",
+        "@aws-lambda-powertools/logger": "^1.5.0",
+        "@aws-lambda-powertools/metrics": "^1.5.0",
+        "@aws-lambda-powertools/tracer": "^1.5.0",
         "@middy/core": "^3.5.0",
         "@types/aws-lambda": "^8.10.106",
         "@types/node": "^18.8.3",
@@ -30,7 +30,7 @@
     },
     "dependencies": {
         "@demo/constructs": "file:./lib/constructs",
-        "aws-cdk-lib": "^2.45.0",
+        "aws-cdk-lib": "^2.54.0",
         "constructs": "^10.1.125",
         "source-map-support": "^0.5.21"
     }
