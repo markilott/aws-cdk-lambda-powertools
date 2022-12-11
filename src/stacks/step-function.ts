@@ -6,6 +6,7 @@ import {
     StateMachine, Condition, Choice, Succeed, Fail, Pass, JsonPath, Chain, TaskInput,
 } from 'aws-cdk-lib/aws-stepfunctions';
 import { CallApiGatewayRestApiEndpoint, HttpMethod } from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import { Color, SingleValueWidget, TextWidget } from 'aws-cdk-lib/aws-cloudwatch';
 
 interface StepFunctionStackProps extends DemoStackProps {
     api: RestApi,
@@ -16,6 +17,9 @@ interface StepFunctionStackProps extends DemoStackProps {
  * functions and generate logs.
  */
 export class StepFunctionStack extends Stack {
+    /** Dashboard Widgets */
+    dashboardWidgets: (TextWidget | SingleValueWidget)[];
+
     /**
      * @param {Construct} scope
      * @param {string} id
@@ -148,5 +152,43 @@ export class StepFunctionStack extends Stack {
             description: 'CLI command to start execution',
             value: `aws stepfunctions start-execution --state-machine-arn "arn:aws:states:${this.region}:${this.account}:stateMachine:${stateMachine.stateMachineName}"`,
         });
+
+        // StepFunction Dashboard Widgets
+        const successMetric = stateMachine.metricSucceeded({
+            label: 'Executions Succeeded',
+            statistic: 'sum',
+            period: Duration.minutes(15),
+            color: Color.GREEN,
+        });
+        const failedMetric = stateMachine.metricFailed({
+            label: 'Executions Failed',
+            statistic: 'sum',
+            period: Duration.minutes(15),
+            color: Color.RED,
+        });
+        const timedOutMetric = stateMachine.metricTimedOut({
+            label: 'Executions Timed Out',
+            statistic: 'sum',
+            period: Duration.minutes(15),
+            color: Color.ORANGE,
+        });
+
+        const label = 'Demo Data';
+        const headerWidget = new TextWidget({
+            markdown: `## ${label} Metrics`,
+            width: 24,
+            height: 1,
+        });
+        const invocationStats = new SingleValueWidget({
+            title: `${label} Invocation Metrics`,
+            metrics: [successMetric, failedMetric, timedOutMetric],
+            sparkline: true,
+            height: 4,
+            width: 12,
+        });
+        this.dashboardWidgets = [
+            headerWidget,
+            invocationStats,
+        ];
     }
 }
