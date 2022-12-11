@@ -64,7 +64,7 @@ export class StepFunctionStack extends Stack {
         const reduceCount = new Pass(this, 'ReduceCount', {
             comment: 'Reduce the iteration count',
             parameters: {
-                'remaining.$': 'States.MathAdd($.count.remaining, -1)',
+                remaining: JsonPath.mathAdd(JsonPath.numberAt('$.count.remaining'), -1),
             },
             resultPath: '$.count',
         }).next(countCheck);
