@@ -245,7 +245,7 @@ export class CustomFunction extends Construct {
             queryLines: [
                 'fields @timestamp, @message',
                 'sort @timestamp desc',
-                'filter level = "ERROR"',
+                'filter level = "ERROR" or @message like /Uncaught Exception.*/',
                 'limit 20',
             ],
             width: 12,
