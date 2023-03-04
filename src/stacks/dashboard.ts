@@ -52,7 +52,7 @@ export class DashboardStack extends Stack {
                 fields: ['@timestamp', '@message'],
                 sort: '@timestamp desc',
                 limit: 20,
-                filter: 'level = "WARN"',
+                filterStatements: ['level = "WARN"'],
             }),
             logGroups,
         });
@@ -64,7 +64,7 @@ export class DashboardStack extends Stack {
                 fields: ['@timestamp', '@message'],
                 sort: '@timestamp desc',
                 limit: 20,
-                filter: 'level = "ERROR"',
+                filterStatements: ['level = "ERROR" or @message like /Uncaught Exception.*/'],
             }),
             logGroups,
         });
@@ -76,7 +76,7 @@ export class DashboardStack extends Stack {
                 fields: ['@timestamp', '@message'],
                 sort: '@timestamp desc',
                 limit: 20,
-                filter: 'level = "WARN" and correlationId = "enter_id"',
+                filterStatements: ['level = "WARN" and correlationId = "enter_id"'],
             }),
             logGroups,
         });
@@ -88,7 +88,7 @@ export class DashboardStack extends Stack {
                 fields: ['@timestamp', '@message'],
                 sort: '@timestamp desc',
                 limit: 20,
-                filter: 'level = "ERROR" and correlationId = "enter_id"',
+                filterStatements: ['level = "ERROR" and correlationId = "enter_id"'],
             }),
             logGroups,
         });
