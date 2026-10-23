@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { DemoStackProps } from 'types';
 import { RestApi } from 'aws-cdk-lib/aws-apigateway';
 import {
-    StateMachine, Condition, Choice, Succeed, Fail, Pass, JsonPath, Chain, TaskInput,
+    StateMachine, Condition, Choice, Succeed, Fail, Pass, JsonPath, Chain, TaskInput, DefinitionBody,
 } from 'aws-cdk-lib/aws-stepfunctions';
 import { CallApiGatewayRestApiEndpoint, HttpMethod } from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import { Color, SingleValueWidget, TextWidget } from 'aws-cdk-lib/aws-cloudwatch';
@@ -143,7 +143,7 @@ export class StepFunctionStack extends Stack {
         // The StepFunction state machine
         const stateMachine = new StateMachine(this, 'TestWorkflow', {
             stateMachineName: 'TestLogDemoFunctions',
-            definition: Chain.start(startPass),
+            definitionBody: DefinitionBody.fromChainable(Chain.start(startPass)),
             timeout: Duration.minutes(15),
             tracingEnabled: true,
         });

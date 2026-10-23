@@ -1,9 +1,13 @@
-import { AWSError, DynamoDB } from 'aws-sdk';
-import { Logger, injectLambdaContext } from '@aws-lambda-powertools/logger';
-import { Metrics, MetricUnits, logMetrics } from '@aws-lambda-powertools/metrics';
-import { Tracer, captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { Logger } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
+import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
+import { Tracer } from '@aws-lambda-powertools/tracer';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import middy from '@middy/core';
-import moment = require('moment');
+import { DateTime } from 'luxon';
 import { ItemAttributes } from 'types';
 
 const tableName = process.env.TABLE_NAME;
@@ -15,9 +19,9 @@ const tracer = new Tracer();
 const metrics = new Metrics();
 
 /** Wrap the AWS client in the tracer */
-const docClient = tracer.captureAWSClient(new DynamoDB.DocumentClient({
+const docClient = DynamoDBDocumentClient.from(tracer.captureAWSv3Client(new DynamoDBClient({
     region: process.env.AWS_REGION,
-}));
+})));
 
 /** Event Props */
 type EventProps = {
@@ -112,7 +116,7 @@ const lambdaHandler = async (event: EventProps): Promise<FunctionResult> => {
          */
         const colourMetric = metrics.singleMetric();
         colourMetric.addDimension('feature', 'colourPicker');
-        colourMetric.addMetric(colour, MetricUnits.Count, 1);
+        colourMetric.addMetric(colour, MetricUnit.Count, 1);
 
         // Throw an error for logging warnings
         if (colour === 'BLACK' || colour === 'PURPLE') { throw new Error(errorMessage); }
@@ -120,29 +124,30 @@ const lambdaHandler = async (event: EventProps): Promise<FunctionResult> => {
         // DynamoDb record
         const item: ItemAttributes = {
             ItemId: itemId,
-            UpdateTime: moment().format(),
+            UpdateTime: DateTime.now().toISO() ?? '',
             CorrelationId: correlationId,
             Colour: colour,
-            ExpiryTime: Number(moment().add(logExpiry, 'd').format('X')),
+            ExpiryTime: DateTime.now().plus({ days: logExpiry }).toUnixInteger(),
         };
         logger.debug('DynamoDb Item', { data: item });
 
         // Create/update the record in DynamoDb
         try {
-            await docClient.put({
+            await docClient.send(new PutCommand({
                 TableName: tableName,
                 Item: item,
                 ConditionExpression: (createRecord) ? 'attribute_not_exists(ItemId)' : 'attribute_exists(ItemId)',
-            }).promise();
+            }));
         } catch (err) {
-            const error = err as AWSError;
-            if (!createRecord && (error.name === 'ResourceNotFoundException' || error.name === 'ConditionalCheckFailedException')) {
-                statusCode = 400;
-                throw new Error(`${itemId} does not exist`);
-            }
-            if (error.name === 'ConditionalCheckFailedException') {
-                statusCode = 400;
-                throw new Error(`${itemId} already exists`);
+            if (err instanceof Error) {
+                if (!createRecord && (err.name === 'ResourceNotFoundException' || err.name === 'ConditionalCheckFailedException')) {
+                    statusCode = 400;
+                    throw new Error(`${itemId} does not exist`, { cause: err });
+                }
+                if (err.name === 'ConditionalCheckFailedException') {
+                    statusCode = 400;
+                    throw new Error(`${itemId} already exists`, { cause: err });
+                }
             }
             throw err;
         }
@@ -163,11 +168,11 @@ const lambdaHandler = async (event: EventProps): Promise<FunctionResult> => {
         if (statusCode === 400) {
             /** Add WARN level log and metric count for client errors */
             logger.warn(errorMessage, { data: params });
-            metrics.addMetric('WARNING', MetricUnits.Count, 1);
+            metrics.addMetric('WARNING', MetricUnit.Count, 1);
         } else {
             /** Add ERROR level log and metric count for internal errors */
             logger.error(err.message, err);
-            metrics.addMetric('ERROR', MetricUnits.Count, 1);
+            metrics.addMetric('ERROR', MetricUnit.Count, 1);
         }
         // Set error message string for API Gateway to parse
         err.message = JSON.stringify({
@@ -182,6 +187,6 @@ const lambdaHandler = async (event: EventProps): Promise<FunctionResult> => {
 /** Wrap the handler with middy and inject PowerTools */
 export const handler = middy(lambdaHandler)
     .use(captureLambdaHandler(tracer))
-    /** clearState resets the correlationId for each invocation */
-    .use(injectLambdaContext(logger, { clearState: true }))
+    /** resetKeys resets the correlationId for each invocation */
+    .use(injectLambdaContext(logger, { resetKeys: true }))
     .use(logMetrics(metrics, { captureColdStartMetric: true }));

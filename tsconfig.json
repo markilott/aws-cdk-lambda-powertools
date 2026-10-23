@@ -3,14 +3,14 @@
         "target": "ES2020",
         "module": "commonjs",
         "lib": [
-            "es2020"
+            "es2020",
+            "es2022.error"
         ],
         "declaration": true,
         "strict": false,
         "noImplicitAny": true,
         "strictNullChecks": true,
         "noImplicitThis": true,
-        "alwaysStrict": false,
         "noUnusedLocals": false,
         "noUnusedParameters": false,
         "noImplicitReturns": true,
@@ -23,11 +23,16 @@
             "./node_modules/@types",
             "./types"
         ],
-        "baseUrl": ".",
+        "types": [
+            "node"
+        ],
         "paths": {
-            // Mapping is relative to "baseUrl"
+            // Mapping is relative to this tsconfig.json file
             "@demo/*": [
                 "./lib/constructs/*"
+            ],
+            "types": [
+                "./types"
             ]
         }
     },
@@ -35,6 +40,6 @@
         "node_modules",
         "cdk.out",
         "**.js",
-        ".eslintrc.js",
+        "eslint.config.js",
     ],
 }

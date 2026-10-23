@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime, Tracing } from 'aws-cdk-lib/aws-lambda';
 import { Duration } from 'aws-cdk-lib';
-import { ILogGroup } from 'aws-cdk-lib/aws-logs';
+import { ILogGroup, LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import {
     Color,
     GaugeWidget, GraphWidget, GraphWidgetView, IWidget, LogQueryVisualizationType, LogQueryWidget, MathExpression, Metric, SingleValueWidget, TextWidget,
@@ -14,6 +14,8 @@ import { CustomFunctionProps, PowerToolsEnvProps } from './types';
  * External npm modules that are included in the tools-layer.
  * These module are excluded in the bundle process.
  * This list needs to be updated if modules are added/removed from the tools-layer.
+ * The AWS SDK v3 clients are not in the layer - they are bundled in the
+ * Lambda Node.js runtime itself, so are also excluded here.
  */
 const toolsModuleList = [
     '@aws-lambda-powertools/commons',
@@ -21,8 +23,9 @@ const toolsModuleList = [
     '@aws-lambda-powertools/metrics',
     '@aws-lambda-powertools/tracer',
     '@middy/core',
-    'aws-sdk',
-    'moment',
+    'luxon',
+    '@aws-sdk/client-dynamodb',
+    '@aws-sdk/lib-dynamodb',
 ];
 
 /**
@@ -59,7 +62,7 @@ export class CustomFunction extends Construct {
             logEvent = false,
         } = powerToolsOptions;
         const {
-            logRetention = 30,
+            logRetention = RetentionDays.ONE_MONTH,
             memorySize = 128,
             timeout = 10,
         } = functionProps;
@@ -78,11 +81,13 @@ export class CustomFunction extends Construct {
 
         const fnc = new NodejsFunction(this, 'Fnc', {
             description,
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_24_X,
             memorySize,
             timeout: Duration.seconds(timeout),
             tracing: Tracing.ACTIVE,
-            logRetention,
+            logGroup: new LogGroup(this, 'LogGroup', {
+                retention: logRetention,
+            }),
             layers: [
                 toolsLayer,
                 ...layers,

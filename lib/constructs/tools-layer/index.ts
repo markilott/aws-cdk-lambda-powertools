@@ -24,7 +24,7 @@ export class ToolsLayer extends Construct {
         const { svcName } = props;
 
         this.layerVersion = new LayerVersion(this, `${svcName}ToolsLayer`, {
-            compatibleRuntimes: [Runtime.NODEJS_16_X],
+            compatibleRuntimes: [Runtime.NODEJS_24_X],
             code: AssetCode.fromAsset(`${__dirname}/../../layers/powertools`),
             description: `${svcName} Tools Shared Layer`,
             layerVersionName: `${svcName}-tools`,
