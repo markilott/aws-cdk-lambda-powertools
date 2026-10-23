@@ -1,4 +1,5 @@
 import { LayerVersion } from 'aws-cdk-lib/aws-lambda';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { LogLevel } from 'types';
 
 /** PowerTools Env Variables */
@@ -101,10 +102,10 @@ export type CustomFunctionProps = {
          */
         timeout?: number,
         /**
-         * Function log retention in days
-         * @default 30
+         * Function log retention
+         * @default RetentionDays.ONE_MONTH
          */
-        logRetention?: number,
+        logRetention?: RetentionDays,
     },
 
     /**
